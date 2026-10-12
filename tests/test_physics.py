@@ -4,7 +4,9 @@ import tempfile
 from pathlib import Path
 import unittest
 from pendulum_wave.cli import main
+from pendulum_wave.convergence import convergence_rows
 from pendulum_wave.physics import State, WaveConfig, energy, make_specs, rk4_step, simulate
+from pendulum_wave.render import bob_position, render_gif
 
 
 class PhysicsTests(unittest.TestCase):
@@ -52,6 +54,13 @@ class PhysicsTests(unittest.TestCase):
             list(simulate(WaveConfig(), 1.0, 0.0))
         with self.assertRaises(ValueError):
             list(simulate(WaveConfig(count=2), 1.0, 0.1, [State(0.0, 0.0)]))
+        with self.assertRaises(ValueError):
+            render_gif(Path("unused.gif"), WaveConfig(), fps=0)
+        with self.assertRaises(ValueError):
+            render_gif(Path("unused.gif"), WaveConfig(), duration=60.0, fps=120,
+                       width=4096, height=4096)
+        with self.assertRaises(ValueError):
+            convergence_rows(0.0)
 
     def test_cli_writes_parseable_csv(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -64,6 +73,28 @@ class PhysicsTests(unittest.TestCase):
                                        "p1_theta_rad", "p1_omega_rad_s"])
             self.assertEqual(len(rows), 4)
             self.assertEqual([float(row[0]) for row in rows[1:]], [0.0, 0.01, 0.02])
+
+    def test_renderer_geometry_and_gif(self) -> None:
+        config = WaveConfig(count=1)
+        spec = make_specs(config)[0]
+        x, y = bob_position(State(0.0, 0.0), spec, (10.0, 20.0), 100.0)
+        self.assertAlmostEqual(x, 10.0)
+        self.assertAlmostEqual(y, 20.0 + spec.length * 100.0)
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "wave.gif"
+            frames = render_gif(output, WaveConfig(count=3), duration=0.2,
+                                fps=10, substeps=2, width=320, height=240)
+            self.assertEqual(frames, 3)
+            self.assertGreater(output.stat().st_size, 100)
+            self.assertEqual(output.read_bytes()[:6], b"GIF89a")
+
+    def test_rk4_shows_fourth_order_convergence(self) -> None:
+        rows = convergence_rows()
+        errors = [row[1] for row in rows]
+        self.assertTrue(all(coarse > fine for coarse, fine in zip(errors, errors[1:])))
+        for _, _, order in rows[1:]:
+            self.assertIsNotNone(order)
+            self.assertGreater(order, 3.8)
 
 
 if __name__ == "__main__":

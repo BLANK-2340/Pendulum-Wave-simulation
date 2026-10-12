@@ -20,6 +20,19 @@ python -m pendulum_wave.cli --duration 4 --dt 0.008333333333333333 --output stat
 python -m pendulum_wave.cli --count 5 --duration 0.02 --dt 0.01
 ```
 
+Install Pillow to render directly from the tested physics states:
+
+```sh
+python -m pip install "Pillow>=10,<13"
+python -m pendulum_wave.render --duration 4 --fps 30 --substeps 4 --output wave.gif
+```
+
+Generate the deterministic RK4 step-size study with:
+
+```sh
+python -m pendulum_wave.convergence
+```
+
 The default configuration mirrors the existing renderer: 27 pendulums, a
 32-second design synchronization time, oscillation counts 25 through 51, a
 24-degree initial displacement, gravity 9.81 m/s², and angular damping 0.0006 s⁻¹.
@@ -36,6 +49,9 @@ At the default 24-degree amplitude, nonlinear period shift means the wave does n
 synchronize perfectly at exactly 32 seconds. String mass, air-flow-dependent drag,
 pivot friction, collisions, and coupling are omitted. This is an educational,
 deterministic simulation rather than a calibrated physical experiment.
+The GIF writer retains encoded frames in memory, so it rejects jobs exceeding a
+100-million-pixel frame budget; reduce duration, frame rate, or resolution for
+larger requests.
 
 ## Validation and continuity — October 9, 2026
 
@@ -47,3 +63,15 @@ deterministic simulation rather than a calibrated physical experiment.
   physical-accuracy claim is made.
 - Next milestone: connect the renderer to the tested physics package through a new
   optional entry point, then add a reproducible convergence report.
+
+## Renderer and convergence milestone — October 12, 2026
+
+- Added a new optional Pillow renderer driven exclusively by states from the
+  tested physics package. The original renderer and GIF remain untouched.
+- Added an executable convergence study comparing four step sizes against a
+  `dt=1/1920 s` reference, plus automated monotonic-error and observed-order tests.
+- Python 3.12.14 and Pillow 12.3.0 locally passed all eight unit tests and
+  bytecode compilation. The renderer smoke test produced a valid 960x540 GIF89a
+  with three frames. See `docs/RK4_CONVERGENCE.md` for recorded accuracy results.
+- Next milestone: rotate to `VisionTrack-NN` for calibrated confidence reporting
+  and deterministic evaluation artifacts on the existing synthetic baseline.
