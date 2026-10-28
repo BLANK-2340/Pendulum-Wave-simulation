@@ -75,3 +75,18 @@ larger requests.
   with three frames. See `docs/RK4_CONVERGENCE.md` for recorded accuracy results.
 - Next milestone: rotate to `VisionTrack-NN` for calibrated confidence reporting
   and deterministic evaluation artifacts on the existing synthetic baseline.
+
+## Clean-checkout showcase verification — October 28, 2026
+
+- Added a one-command verifier that exports committed `HEAD`, runs the complete
+  warning-strict suite, compiles bytecode, and checks independently repeated CSV,
+  convergence-table and GIF outputs byte for byte.
+- The verifier also checks the five-pendulum CSV time grid and the rendered GIF's
+  format, 320x240 dimensions and three-frame count. It runs in a temporary archive
+  so ignored files and uncommitted local state cannot make the check pass.
+- Added a concise evidence index with setup and runnable commands, architecture,
+  recorded convergence results and explicit physical and computational limits.
+  The pre-existing renderer, `main.py`, and generated GIF remain unchanged.
+
+Next milestone: persist the convergence study as a machine-readable, strictly
+validated numerical artifact rather than requiring prose-table inspection.
