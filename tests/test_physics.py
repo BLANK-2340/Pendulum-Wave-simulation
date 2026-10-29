@@ -6,7 +6,9 @@ from pathlib import Path
 import unittest
 from pendulum_wave.cli import main
 from pendulum_wave.convergence import convergence_report, convergence_rows, report_json
-from pendulum_wave.evidence import DEFAULT_ARTIFACT, validate_file, validate_report
+from pendulum_wave.evidence import (DEFAULT_ARTIFACT, DEFAULT_ENERGY_ARTIFACT,
+                                    validate_energy_report, validate_file, validate_report)
+from pendulum_wave.energy_drift import energy_drift_report, report_json as energy_report_json
 from pendulum_wave.physics import State, WaveConfig, energy, make_specs, rk4_step, simulate
 from pendulum_wave.render import bob_position, render_gif
 
@@ -127,6 +129,38 @@ class PhysicsTests(unittest.TestCase):
         self.assertEqual(report["method"], "classical_rk4")
         self.assertEqual(len(report["rows"]), 4)
         self.assertTrue(all(row["steps"] > 0 for row in report["rows"]))
+
+    def test_energy_drift_decreases_with_step_refinement(self) -> None:
+        rows = energy_drift_report()["rows"]
+        drifts = [row["max_abs_relative_drift"] for row in rows]
+        self.assertTrue(all(coarse > fine for coarse, fine in zip(drifts, drifts[1:])))
+        self.assertTrue(all(coarse / fine > 20.0 for coarse, fine in zip(drifts, drifts[1:])))
+
+    def test_committed_energy_evidence_is_canonical_and_recomputed(self) -> None:
+        validate_file(DEFAULT_ENERGY_ARTIFACT)
+        report = json.loads(DEFAULT_ENERGY_ARTIFACT.read_text(encoding="utf-8"))
+        self.assertEqual(report["experiment"], "rk4_undamped_energy_drift")
+
+    def test_energy_evidence_rejects_corruption(self) -> None:
+        mutations = []
+        wrong_drift = energy_drift_report()
+        wrong_drift["rows"][1]["max_abs_relative_drift"] *= 2.0
+        mutations.append(wrong_drift)
+        wrong_energy = energy_drift_report()
+        wrong_energy["rows"][3]["final_energy_j_per_kg"] = float("inf")
+        mutations.append(wrong_energy)
+        extra_key = energy_drift_report()
+        extra_key["configuration"]["unexpected"] = 1
+        mutations.append(extra_key)
+        for report in mutations:
+            with self.subTest(report=report), self.assertRaises(ValueError):
+                validate_energy_report(report)
+
+    def test_energy_json_payload_is_parseable_and_complete(self) -> None:
+        report = json.loads(energy_report_json())
+        self.assertEqual(report["schema_version"], 1)
+        self.assertEqual(report["configuration"]["damping_s_inv"], 0.0)
+        self.assertEqual(len(report["rows"]), 4)
 
 
 if __name__ == "__main__":

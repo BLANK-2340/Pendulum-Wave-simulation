@@ -9,9 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from .convergence import convergence_report
+from .energy_drift import energy_drift_report
 
 
 DEFAULT_ARTIFACT = Path(__file__).resolve().parents[1] / "results" / "rk4_convergence.json"
+DEFAULT_ENERGY_ARTIFACT = Path(__file__).resolve().parents[1] / "results" / "energy_drift.json"
 
 
 def _require_keys(value: dict[str, Any], expected: set[str], context: str) -> None:
@@ -29,20 +31,23 @@ def _require_number(value: Any, context: str) -> float:
     return result
 
 
-def validate_report(report: Any) -> None:
-    """Validate schema and independently recompute every numeric field."""
+def _validate_against(report: Any, expected: dict[str, Any]) -> None:
+    """Validate a strict schema and compare it with an independent recomputation."""
     if not isinstance(report, dict):
         raise ValueError("report must be an object")
-    expected = convergence_report()
     _require_keys(report, set(expected), "report")
     if report["schema_version"] != 1:
         raise ValueError("unsupported schema_version")
     if report["experiment"] != expected["experiment"] or report["method"] != expected["method"]:
         raise ValueError("unexpected experiment identity")
-    for object_name in ("initial_state", "configuration", "reference"):
+    for object_name in ("initial_state", "configuration"):
         if not isinstance(report[object_name], dict):
             raise ValueError(f"{object_name} must be an object")
         _require_keys(report[object_name], set(expected[object_name]), object_name)
+    if "reference" in expected:
+        if not isinstance(report["reference"], dict):
+            raise ValueError("reference must be an object")
+        _require_keys(report["reference"], set(expected["reference"]), "reference")
     rows = report["rows"]
     if not isinstance(rows, list) or len(rows) != len(expected["rows"]):
         raise ValueError("rows must contain the four prescribed refinements")
@@ -50,10 +55,11 @@ def validate_report(report: Any) -> None:
         if not isinstance(actual_row, dict):
             raise ValueError(f"rows[{index}] must be an object")
         _require_keys(actual_row, set(expected_row), f"rows[{index}]")
-        if not isinstance(actual_row["final_state"], dict):
-            raise ValueError(f"rows[{index}].final_state must be an object")
-        _require_keys(actual_row["final_state"], set(expected_row["final_state"]),
-                      f"rows[{index}].final_state")
+        if "final_state" in expected_row:
+            if not isinstance(actual_row["final_state"], dict):
+                raise ValueError(f"rows[{index}].final_state must be an object")
+            _require_keys(actual_row["final_state"], set(expected_row["final_state"]),
+                          f"rows[{index}].final_state")
 
     def compare(actual: Any, wanted: Any, path: str) -> None:
         if isinstance(wanted, dict):
@@ -76,6 +82,16 @@ def validate_report(report: Any) -> None:
     compare(report, expected, "report")
 
 
+def validate_report(report: Any) -> None:
+    """Validate convergence evidence and independently recompute every numeric field."""
+    _validate_against(report, convergence_report())
+
+
+def validate_energy_report(report: Any) -> None:
+    """Validate energy-drift evidence and independently recompute every numeric field."""
+    _validate_against(report, energy_drift_report())
+
+
 def validate_file(path: Path = DEFAULT_ARTIFACT) -> None:
     raw = path.read_text(encoding="utf-8")
     try:
@@ -83,7 +99,15 @@ def validate_file(path: Path = DEFAULT_ARTIFACT) -> None:
             ValueError(f"non-finite JSON constant: {value}")))
     except (json.JSONDecodeError, ValueError) as error:
         raise ValueError(f"invalid JSON: {error}") from error
-    validate_report(report)
+    if not isinstance(report, dict):
+        raise ValueError("report must be an object")
+    experiment = report.get("experiment")
+    if experiment == "rk4_final_state_convergence":
+        validate_report(report)
+    elif experiment == "rk4_undamped_energy_drift":
+        validate_energy_report(report)
+    else:
+        raise ValueError("unexpected experiment identity")
     canonical = json.dumps(report, indent=2, sort_keys=True, allow_nan=False) + "\n"
     if raw != canonical:
         raise ValueError("artifact is not canonical JSON")
@@ -91,13 +115,15 @@ def validate_file(path: Path = DEFAULT_ARTIFACT) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("path", nargs="?", type=Path, default=DEFAULT_ARTIFACT)
+    parser.add_argument("paths", nargs="*", type=Path)
     args = parser.parse_args(argv)
-    try:
-        validate_file(args.path)
-    except (OSError, ValueError) as error:
-        parser.error(str(error))
-    print(f"validated {args.path}")
+    paths = args.paths or [DEFAULT_ARTIFACT, DEFAULT_ENERGY_ARTIFACT]
+    for path in paths:
+        try:
+            validate_file(path)
+        except (OSError, ValueError) as error:
+            parser.error(f"{path}: {error}")
+        print(f"validated {path}")
     return 0
 
 

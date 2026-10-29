@@ -1,0 +1,49 @@
+{
+  "configuration": {
+    "damping_s_inv": 0.0,
+    "gravity_m_s2": 9.81,
+    "pendulum_length_m": 0.4071263484032343
+  },
+  "duration_s": 32.0,
+  "experiment": "rk4_undamped_energy_drift",
+  "initial_state": {
+    "omega_rad_s": 0.0,
+    "theta_rad": 0.4188790204786391
+  },
+  "method": "classical_rk4",
+  "rows": [
+    {
+      "dt_s": 0.03333333333333333,
+      "final_energy_j_per_kg": 0.34520951846650116,
+      "final_relative_drift": -0.0002377632494744397,
+      "initial_energy_j_per_kg": 0.3452916161231669,
+      "max_abs_relative_drift": 0.0002377632494744397,
+      "steps": 960
+    },
+    {
+      "dt_s": 0.016666666666666666,
+      "final_energy_j_per_kg": 0.3452890454659441,
+      "final_relative_drift": -7.444887459689383e-06,
+      "initial_energy_j_per_kg": 0.3452916161231669,
+      "max_abs_relative_drift": 7.444887459689383e-06,
+      "steps": 1920
+    },
+    {
+      "dt_s": 0.008333333333333333,
+      "final_energy_j_per_kg": 0.34529153585438255,
+      "final_relative_drift": -2.3246664730167796e-07,
+      "initial_energy_j_per_kg": 0.3452916161231669,
+      "max_abs_relative_drift": 2.331840271442166e-07,
+      "steps": 3840
+    },
+    {
+      "dt_s": 0.004166666666666667,
+      "final_energy_j_per_kg": 0.34529161362164673,
+      "final_relative_drift": -7.244659415044958e-09,
+      "initial_energy_j_per_kg": 0.3452916161231669,
+      "max_abs_relative_drift": 7.319656431531574e-09,
+      "steps": 7680
+    }
+  ],
+  "schema_version": 1
+}

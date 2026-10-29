@@ -16,8 +16,9 @@ The Markdown table is also recorded as canonical machine-readable evidence in
 strictly checks its schema and independently recomputes the reference state,
 each coarse final state, errors, and observed orders.
 
-The experiment integrates one undamped pendulum for 4 seconds from
-`theta = 0.7 rad` and `omega = 0 rad/s`. The reference final state uses
+The experiment integrates one undamped pendulum for 4 seconds from the default
+24-degree release angle (`theta = 0.418879020479 rad`) and `omega = 0 rad/s`.
+The reference final state uses
 `dt = 1/1920 s`. Each row compares a coarser final state with that reference
 using the L2 norm over `(theta, omega)`. Observed order is
 `log2(error_previous / error_current)`.
