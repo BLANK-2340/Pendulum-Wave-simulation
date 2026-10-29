@@ -21,6 +21,10 @@ cmp "$archive_root/states-a.csv" "$archive_root/states-b.csv"
 python3 -m pendulum_wave.convergence > "$archive_root/convergence-a.md"
 python3 -m pendulum_wave.convergence > "$archive_root/convergence-b.md"
 cmp "$archive_root/convergence-a.md" "$archive_root/convergence-b.md"
+python3 -m pendulum_wave.convergence --format json --output "$archive_root/convergence-a.json"
+python3 -m pendulum_wave.convergence --format json --output "$archive_root/convergence-b.json"
+cmp "$archive_root/convergence-a.json" "$archive_root/convergence-b.json"
+python3 -m pendulum_wave.evidence results/rk4_convergence.json
 
 python3 -m pendulum_wave.render --count 5 --duration 0.2 --fps 10 --substeps 2 \
   --width 320 --height 240 --output "$archive_root/wave-a.gif"

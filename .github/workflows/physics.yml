@@ -18,4 +18,5 @@ jobs:
       - run: python -m pendulum_wave.cli --count 3 --duration 0.02 --dt 0.01 --output /tmp/states.csv
       - run: python -m pendulum_wave.render --count 3 --duration 0.1 --fps 10 --output /tmp/wave.gif
       - run: python -m pendulum_wave.convergence
+      - run: python -m pendulum_wave.evidence
       - run: ./scripts/verify_showcase.sh

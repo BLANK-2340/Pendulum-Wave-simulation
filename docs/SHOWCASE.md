@@ -18,10 +18,12 @@ python -m pip install "Pillow>=10,<13"
 ```
 
 The verifier exports committed `HEAD` into a temporary directory. It runs all
-eight tests with warnings treated as errors, compiles Python bytecode, executes
+eleven tests with warnings treated as errors, compiles Python bytecode, executes
 two byte-identical CSV exports, executes two byte-identical convergence reports,
-and renders two byte-identical three-frame GIFs. It then independently checks the
-CSV time grid and GIF format, dimensions and frame count.
+executes two byte-identical structured convergence artifacts, and renders two
+byte-identical three-frame GIFs. It validates the committed evidence against an
+independent recomputation, then checks the CSV time grid and GIF format,
+dimensions and frame count.
 
 ## Runnable targets
 
@@ -31,6 +33,8 @@ CSV time grid and GIF format, dimensions and frame count.
 | CSV simulation | `python -m pendulum_wave.cli --duration 4 --dt 0.008333333333333333 --output states.csv` | Deterministic angular position and velocity states |
 | GIF renderer | `python -m pendulum_wave.render --duration 4 --fps 30 --substeps 4 --output wave.gif` | Pillow rendering driven only by tested physics states |
 | Convergence study | `python -m pendulum_wave.convergence` | Final-state error against a finer numerical reference |
+| JSON evidence | `python -m pendulum_wave.convergence --format json --output convergence.json` | Canonical, byte-repeatable experiment metadata, states, errors and orders |
+| Evidence validator | `python -m pendulum_wave.evidence` | Strict schema and independent numeric recomputation of the committed artifact |
 | Complete verification | `./scripts/verify_showcase.sh` | Isolated committed archive plus deterministic artifacts |
 
 ## Architecture
@@ -59,6 +63,10 @@ errors for one smooth, undamped four-second trajectory. Halving the step size
 reduced error by approximately 16 times, with observed orders `4.026925`,
 `4.015949`, and `4.008923`. This supports the expected fourth-order behavior for
 that controlled trajectory; it is not a universal physical-accuracy claim.
+The same run is committed as
+[`results/rk4_convergence.json`](../results/rk4_convergence.json); the standalone
+validator rejects schema changes, non-finite values, altered step counts, states,
+errors or orders, and non-canonical serialization.
 
 ## Known limitations
 
@@ -73,5 +81,5 @@ that controlled trajectory; it is not a universal physical-accuracy claim.
   pixels. It is a reproducibility demo, not a rendering-performance benchmark.
 - No hardware-performance or real-apparatus validation claim is made.
 
-Next milestone: add a machine-readable, strictly validated numerical-evidence
-artifact so the convergence table can be checked without parsing prose.
+Next milestone: add a deterministic energy-drift evidence artifact spanning
+multiple step sizes while keeping the result scoped to the undamped model.

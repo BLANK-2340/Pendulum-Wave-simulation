@@ -1,0 +1,66 @@
+{
+  "configuration": {
+    "base_oscillations": 25,
+    "damping_s_inv": 0.0,
+    "gravity_m_s2": 9.81,
+    "sync_time_s": 32.0
+  },
+  "duration_s": 4.0,
+  "experiment": "rk4_final_state_convergence",
+  "initial_state": {
+    "omega_rad_s": 0.0,
+    "theta_rad": 0.4188790204786391
+  },
+  "method": "classical_rk4",
+  "reference": {
+    "dt_s": 0.0005208333333333333,
+    "final_state": {
+      "omega_rad_s": -1.0933148169933304,
+      "theta_rad": 0.3529722188193088
+    },
+    "steps": 7680
+  },
+  "rows": [
+    {
+      "dt_s": 0.03333333333333333,
+      "final_state": {
+        "omega_rad_s": -1.0931205189074433,
+        "theta_rad": 0.35299024196170437
+      },
+      "l2_error": 0.00019513221118310227,
+      "observed_order": null,
+      "steps": 120
+    },
+    {
+      "dt_s": 0.016666666666666666,
+      "final_state": {
+        "omega_rad_s": -1.0933029203343998,
+        "theta_rad": 0.35297354420549915
+      },
+      "l2_error": 1.1970260743427477e-05,
+      "observed_order": 4.026925465129242,
+      "steps": 240
+    },
+    {
+      "dt_s": 0.008333333333333333,
+      "final_state": {
+        "omega_rad_s": -1.093314082439148,
+        "theta_rad": 0.3529723077342717
+      },
+      "l2_error": 7.399160205467911e-07,
+      "observed_order": 4.015949231925124,
+      "steps": 480
+    },
+    {
+      "dt_s": 0.004166666666666667,
+      "final_state": {
+        "omega_rad_s": -1.0933147713940177,
+        "theta_rad": 0.3529722245628059
+      },
+      "l2_error": 4.595960274310903e-08,
+      "observed_order": 4.008923303068405,
+      "steps": 960
+    }
+  ],
+  "schema_version": 1
+}

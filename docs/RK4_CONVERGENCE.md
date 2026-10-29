@@ -8,7 +8,13 @@ performance benchmark.
 
 ```bash
 python -m pendulum_wave.convergence
+python -m pendulum_wave.evidence
 ```
+
+The Markdown table is also recorded as canonical machine-readable evidence in
+[`results/rk4_convergence.json`](../results/rk4_convergence.json). The validator
+strictly checks its schema and independently recomputes the reference state,
+each coarse final state, errors, and observed orders.
 
 The experiment integrates one undamped pendulum for 4 seconds from
 `theta = 0.7 rad` and `omega = 0 rad/s`. The reference final state uses

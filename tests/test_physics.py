@@ -1,10 +1,12 @@
 import csv
+import json
 import math
 import tempfile
 from pathlib import Path
 import unittest
 from pendulum_wave.cli import main
-from pendulum_wave.convergence import convergence_rows
+from pendulum_wave.convergence import convergence_report, convergence_rows, report_json
+from pendulum_wave.evidence import DEFAULT_ARTIFACT, validate_file, validate_report
 from pendulum_wave.physics import State, WaveConfig, energy, make_specs, rk4_step, simulate
 from pendulum_wave.render import bob_position, render_gif
 
@@ -95,6 +97,36 @@ class PhysicsTests(unittest.TestCase):
         for _, _, order in rows[1:]:
             self.assertIsNotNone(order)
             self.assertGreater(order, 3.8)
+
+    def test_committed_convergence_evidence_is_canonical_and_recomputed(self) -> None:
+        validate_file(DEFAULT_ARTIFACT)
+        report = json.loads(DEFAULT_ARTIFACT.read_text(encoding="utf-8"))
+        self.assertEqual(report["experiment"], "rk4_final_state_convergence")
+
+    def test_convergence_evidence_rejects_corruption(self) -> None:
+        mutations = []
+        extra_key = convergence_report()
+        extra_key["unexpected"] = True
+        mutations.append(extra_key)
+        wrong_error = convergence_report()
+        wrong_error["rows"][2]["l2_error"] *= 2.0
+        mutations.append(wrong_error)
+        wrong_steps = convergence_report()
+        wrong_steps["reference"]["steps"] += 1
+        mutations.append(wrong_steps)
+        non_finite = convergence_report()
+        non_finite["rows"][0]["l2_error"] = float("nan")
+        mutations.append(non_finite)
+        for report in mutations:
+            with self.subTest(report=report), self.assertRaises(ValueError):
+                validate_report(report)
+
+    def test_json_cli_payload_is_parseable_and_complete(self) -> None:
+        report = json.loads(report_json())
+        self.assertEqual(report["schema_version"], 1)
+        self.assertEqual(report["method"], "classical_rk4")
+        self.assertEqual(len(report["rows"]), 4)
+        self.assertTrue(all(row["steps"] > 0 for row in report["rows"]))
 
 
 if __name__ == "__main__":
