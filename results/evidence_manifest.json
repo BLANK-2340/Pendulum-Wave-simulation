@@ -1,0 +1,32 @@
+{
+  "artifacts": [
+    {
+      "experiment": "rk4_final_state_convergence",
+      "path": "results/rk4_convergence.json",
+      "schema_version": 1,
+      "scope": {
+        "claim_limit": "controlled step-refinement result, not universal physical accuracy",
+        "duration_s": 4.0,
+        "measurement": "final-state L2 error against a dt=1/1920 s numerical reference",
+        "model": "one undamped nonlinear pendulum"
+      },
+      "sha256": "a74498b8fa90951cce4a99675e9f42af3f0b06534cb6640a9e4b9e0aa91bdb5f",
+      "validation_command": "python -m pendulum_wave.evidence results/rk4_convergence.json"
+    },
+    {
+      "experiment": "rk4_undamped_energy_drift",
+      "path": "results/energy_drift.json",
+      "schema_version": 1,
+      "scope": {
+        "claim_limit": "fixed-duration RK4 result, not exact or long-time conservation",
+        "duration_s": 32.0,
+        "measurement": "final and maximum absolute relative mechanical-energy drift",
+        "model": "one undamped nonlinear pendulum"
+      },
+      "sha256": "5c622a18117b01cdaef4b42088cad21eae9565ae6fdf011fdfa3b93c252ba559",
+      "validation_command": "python -m pendulum_wave.evidence results/energy_drift.json"
+    }
+  ],
+  "project": "BLANK-2340/Pendulum-Wave-simulation",
+  "schema_version": 1
+}

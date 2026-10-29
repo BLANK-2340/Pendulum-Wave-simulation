@@ -19,13 +19,13 @@ python -m pip install "Pillow>=10,<13"
 ```
 
 The verifier exports committed `HEAD` into a temporary directory. It runs all
-fifteen tests with warnings treated as errors, compiles Python bytecode, executes
-two byte-identical CSV exports, executes two byte-identical convergence reports,
-executes two byte-identical structured convergence artifacts, and renders two
-byte-identical energy-drift artifacts, and renders two byte-identical three-frame
-GIFs. It validates both committed evidence files against independent
-recomputations, then checks the CSV time grid and GIF format, dimensions and
-frame count.
+eighteen tests with warnings treated as errors, compiles Python bytecode,
+executes two byte-identical CSV exports, two byte-identical convergence reports,
+two byte-identical structured convergence artifacts, two byte-identical
+energy-drift artifacts, two byte-identical evidence manifests, and two
+byte-identical three-frame GIFs. It validates both committed evidence files
+against independent recomputations, checks their manifest metadata and SHA-256
+hashes, then checks the CSV time grid and GIF format, dimensions and frame count.
 
 ## Runnable targets
 
@@ -38,6 +38,7 @@ frame count.
 | JSON evidence | `python -m pendulum_wave.convergence --format json --output convergence.json` | Canonical, byte-repeatable experiment metadata, states, errors and orders |
 | Energy-drift study | `python -m pendulum_wave.energy_drift` | Four fixed-step measurements over one 32-second undamped trajectory |
 | Evidence validator | `python -m pendulum_wave.evidence` | Strict schemas and independent numeric recomputation of both committed artifacts |
+| Evidence manifest | `python -m pendulum_wave.manifest --validate` | Regenerates artifact identities, scopes and SHA-256 hashes, then requires an exact match |
 | Complete verification | `./scripts/verify_showcase.sh` | Isolated committed archive plus deterministic artifacts |
 
 ## Architecture
@@ -53,6 +54,8 @@ frame count.
   against a `dt=1/1920 s` numerical reference.
 - [`energy_drift.py`](../pendulum_wave/energy_drift.py) measures final and maximum
   relative energy drift at four fixed step sizes.
+- [`manifest.py`](../pendulum_wave/manifest.py) binds each numerical artifact to
+  its experiment identity, validation command, measured scope and content hash.
 
 Each bob is an independent nonlinear pendulum:
 
@@ -80,6 +83,12 @@ standalone validator independently repeats all four trajectories. This is scoped
 numerical evidence; RK4 is not symplectic and the result is not a universal or
 long-time conservation guarantee.
 
+[`results/evidence_manifest.json`](../results/evidence_manifest.json) provides a
+canonical index for both reports. Validation first independently recomputes each
+experiment, then regenerates and compares the manifest, including each
+artifact's SHA-256 hash. The manifest describes evidence scope; it does not
+broaden either experiment's claims.
+
 ## Known limitations
 
 - The designed 32-second synchronization uses a small-angle period formula; at
@@ -95,5 +104,5 @@ long-time conservation guarantee.
   pixels. It is a reproducibility demo, not a rendering-performance benchmark.
 - No hardware-performance or real-apparatus validation claim is made.
 
-Next milestone: add a compact machine-readable manifest that indexes the
-committed evidence artifacts, their validation commands and measured scope.
+Next milestone: prepare a concise cross-repository portfolio index of verified
+setup commands, runnable demos, measured results and remaining limitations.

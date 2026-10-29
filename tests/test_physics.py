@@ -9,6 +9,9 @@ from pendulum_wave.convergence import convergence_report, convergence_rows, repo
 from pendulum_wave.evidence import (DEFAULT_ARTIFACT, DEFAULT_ENERGY_ARTIFACT,
                                     validate_energy_report, validate_file, validate_report)
 from pendulum_wave.energy_drift import energy_drift_report, report_json as energy_report_json
+from pendulum_wave.manifest import (DEFAULT_MANIFEST, build_manifest, report_json as
+                                    manifest_report_json, validate_manifest,
+                                    validate_manifest_file)
 from pendulum_wave.physics import State, WaveConfig, energy, make_specs, rk4_step, simulate
 from pendulum_wave.render import bob_position, render_gif
 
@@ -161,6 +164,30 @@ class PhysicsTests(unittest.TestCase):
         self.assertEqual(report["schema_version"], 1)
         self.assertEqual(report["configuration"]["damping_s_inv"], 0.0)
         self.assertEqual(len(report["rows"]), 4)
+
+    def test_committed_evidence_manifest_is_canonical_and_bound_to_artifacts(self) -> None:
+        validate_manifest_file(DEFAULT_MANIFEST)
+        manifest = json.loads(DEFAULT_MANIFEST.read_text(encoding="utf-8"))
+        self.assertEqual([item["experiment"] for item in manifest["artifacts"]], [
+            "rk4_final_state_convergence", "rk4_undamped_energy_drift"])
+
+    def test_evidence_manifest_rejects_corruption(self) -> None:
+        wrong_hash = build_manifest()
+        wrong_hash["artifacts"][0]["sha256"] = "0" * 64
+        extra_artifact = build_manifest()
+        extra_artifact["artifacts"].append(extra_artifact["artifacts"][0])
+        wrong_scope = build_manifest()
+        wrong_scope["artifacts"][1]["scope"]["duration_s"] = 64.0
+        for manifest in (wrong_hash, extra_artifact, wrong_scope):
+            with self.subTest(manifest=manifest), self.assertRaises(ValueError):
+                validate_manifest(manifest)
+
+    def test_evidence_manifest_json_is_repeatable_and_complete(self) -> None:
+        first = manifest_report_json()
+        self.assertEqual(first, manifest_report_json())
+        manifest = json.loads(first)
+        self.assertEqual(manifest["schema_version"], 1)
+        self.assertEqual(len(manifest["artifacts"]), 2)
 
 
 if __name__ == "__main__":

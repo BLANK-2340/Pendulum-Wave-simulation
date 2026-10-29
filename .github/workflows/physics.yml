@@ -20,4 +20,5 @@ jobs:
       - run: python -m pendulum_wave.convergence
       - run: python -m pendulum_wave.energy_drift
       - run: python -m pendulum_wave.evidence
+      - run: python -m pendulum_wave.manifest --validate
       - run: ./scripts/verify_showcase.sh

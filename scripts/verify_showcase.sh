@@ -31,6 +31,11 @@ python3 -m pendulum_wave.energy_drift --format json --output "$archive_root/ener
 cmp "$archive_root/energy-a.json" "$archive_root/energy-b.json"
 python3 -m pendulum_wave.evidence results/energy_drift.json
 
+python3 -m pendulum_wave.manifest --output "$archive_root/manifest-a.json"
+python3 -m pendulum_wave.manifest --output "$archive_root/manifest-b.json"
+cmp "$archive_root/manifest-a.json" "$archive_root/manifest-b.json"
+python3 -m pendulum_wave.manifest --validate
+
 python3 -m pendulum_wave.render --count 5 --duration 0.2 --fps 10 --substeps 2 \
   --width 320 --height 240 --output "$archive_root/wave-a.gif"
 python3 -m pendulum_wave.render --count 5 --duration 0.2 --fps 10 --substeps 2 \
